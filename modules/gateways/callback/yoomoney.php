@@ -6,17 +6,16 @@ require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
 require_once __DIR__ . '/../../../includes/invoicefunctions.php';
 
-$notification_type = $_POST['notification_type'];
-$operation_id = $_POST['operation_id'];
-$amount = $_POST['amount'];
-$withdraw_amount = $_POST['withdraw_amount'];
-$currency = $_POST['currency'];
-$datetime = $_POST['datetime'];
-$sender = $_POST['sender'];
-$codepro = $_POST['codepro'];
-$label = $_POST['label'];
-$sha1_hash = $_POST['sha1_hash'];
-$unaccepted = $_POST['unaccepted'];
+$notification_type = $_POST['notification_type'] ?? '';
+$operation_id = $_POST['operation_id'] ?? '';
+$amount = $_POST['amount'] ?? 0;
+$currency = $_POST['currency'] ?? '';
+$datetime = $_POST['datetime'] ?? '';
+$sender = $_POST['sender'] ?? '';
+$codepro = $_POST['codepro'] ?? '';
+$label = $_POST['label'] ?? '';
+$sha1_hash = $_POST['sha1_hash'] ?? '';
+$unaccepted = $_POST['unaccepted'] ?? '';
 
 $gatewayModuleName = 'yoomoney';
 $gatewayParams = getGatewayVariables($gatewayModuleName);
@@ -51,22 +50,20 @@ if ($unaccepted === 'true') {
 
 $invoiceId = checkCbInvoiceID($label, $gatewayModuleName);
 
-$paymentAmount = floatval($amount);
 $invoice = Capsule::table('tblinvoices')->where('id', $invoiceId)->first();
 
 if (!$invoice) {
     die('Заказ не найден в системе');
 }
 
-if (floatval($invoice->total) != $paymentAmount) {
+if (floatval($invoice->total) != floatval($amount)) {
     die('Несоответствие суммы платежа сумме заказа');
 }
 
 $transactionId = $operation_id;
-$paymentSuccess = true;
+$paymentAmount = floatval($amount);
 $fee = 0;
 
 addInvoicePayment($invoiceId, $transactionId, $paymentAmount, $fee, $gatewayModuleName);
-
 header('HTTP/1.1 200 OK');
 echo 'OK';
